@@ -27,7 +27,7 @@ export class Indexer {
      */
     public reIndexDocuments(document: Document[]): IndexedDocument {
         this.documents = document;
-        return this.indexDocuments();
+        return this.index = this.indexDocuments();
     }
 
     private indexDocuments(): IndexedDocument {
