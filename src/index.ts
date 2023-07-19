@@ -1,17 +1,6 @@
 import fs from 'fs';
-
-
-interface Document {
-    name: string;
-    content: string;
-}
-
-interface PostingList {
-    documents: string[];
-    frequency: number;
-}
-
-type IndexedDocument = Map<string, PostingList>;
+import { Indexer } from './indexer/indexer';
+import { Document, IndexedDocument } from './model/documents';
 
 function readJsonFile(path: string): Document[] {
     try {
@@ -35,36 +24,6 @@ function readJsonFile(path: string): Document[] {
     }
 }
 
-/**
- * 
- * @param documents documents to be indexed
- * @returns IndexDocuments
- * 
- * IndexDocuments is a map of words to PostingList
- * PostingList is a list of documents and the frequency of the word in the document
- * 
- */
-function indexDocuments(documents: Document[]): IndexedDocument {
-    const indexedDocuments: IndexedDocument = new Map<string, PostingList>();
-    for (const document of documents) {
-        const words = document.content.split(' ');
-        for (const word of words) {
-            if (indexedDocuments.get(word) === undefined) {
-                const postingList: PostingList = {
-                    documents: [document.name],
-                    frequency: 1,
-                };
-                indexedDocuments.set(word, postingList);
-            } else {
-                const postingList = indexedDocuments.get(word)!!;
-                postingList.frequency++;
-                postingList.documents.push(document.name);
-                indexedDocuments.set(word, postingList)
-            }
-        }
-    }
-    return sortMapByKey(indexedDocuments);
-}
 
 /**
  * 
@@ -81,15 +40,6 @@ function writeJsonFile(path: string, data: IndexedDocument): void {
     }
 }
 
-function sortMapByKey<V>(map: Map<string, V>): Map<string, V> {
-    const sortedArray = Array.from(map.entries()).sort((a, b) => {
-        return a[0].localeCompare(b[0]);
-    });
-    const sortedMap = new Map<string, V>(sortedArray);
-    return sortedMap;
-}
-
-
 const convertedDocuments = readJsonFile('./data/data.json');
-const indexedDocuments = indexDocuments(convertedDocuments);
-console.log(indexedDocuments);
+const indexer = new Indexer(convertedDocuments);
+console.log(indexer.index);
