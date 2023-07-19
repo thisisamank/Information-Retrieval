@@ -4,6 +4,14 @@ import { Document, IndexedDocument, PostingList } from '../model/documents';
 export class Indexer {
 
     private documents: Document[];
+
+    /**
+     * @param index is generated during construction of the object of this class
+     * to refresh the index, use reIndexDocuments(...)
+     * IndexedDocument is a map of words to PostingList
+     * PostingList is a list of documents and the frequency of the word in the document 
+     **/
+
     public index: IndexedDocument;
 
     /**
