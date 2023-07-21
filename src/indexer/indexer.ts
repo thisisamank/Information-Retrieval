@@ -12,7 +12,7 @@ export class Indexer {
      * PostingList is a list of documents and the frequency of the word in the document 
      **/
 
-    public index: IndexedDocument;
+    public index: IndexedDocument = new Map<string, PostingList>();
 
     /**
      * TODO: Might add a semaphore to prevent access of index while indexing
