@@ -11,6 +11,11 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@types/node": "^20.4.2"
+    "@types/natural": "^5.1.2",
+    "@types/node": "^20.4.2",
+    "@types/stopword": "^2.0.0",
+    "csv-parser": "^3.0.0",
+    "fs": "^0.0.1-security",
+    "stopword": "^2.0.8"
   }
 }

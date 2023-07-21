@@ -1,5 +1,6 @@
-import { Document, IndexedDocument, PostingList } from '../model/documents';
+import { eng, removeStopwords } from 'stopword';
 
+import { Document, IndexedDocument, PostingList } from '../model/documents';
 
 export class Indexer {
 
@@ -71,6 +72,6 @@ export class Indexer {
     }
 
     private tokenizer(document: Document): string[] {
-        return document.content.toLowerCase().split(' ');
+        return removeStopwords(document.content.toLowerCase().split(' '), eng)
     }
 }

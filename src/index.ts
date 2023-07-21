@@ -1,6 +1,40 @@
+import csvParser from 'csv-parser';
 import fs from 'fs';
 import { Indexer } from './indexer/indexer';
 import { Document, IndexedDocument } from './model/documents';
+
+const csvFilePath = './data/data.csv';
+
+const data: Document[] = [];
+
+function readCSV() {
+
+    // Read the CSV file and parse it
+    fs.createReadStream(csvFilePath)
+        .pipe(csvParser())
+        .on('data', (row: any) => {
+            const movie: Document = {
+                name: row['Title'],
+                content: `
+                ${parseInt(row['Release Year'])}
+                ${row['Title']}
+                ${row['Origin/Ethnicity']}
+                ${row['Director']}
+                ${row['Cast']}
+                ${row['Genre']}
+                ${row['Plot']}
+                `,
+                link: row['Wiki Page'],
+            }
+            data.push(movie);
+        })
+        .on('end', () => {
+            const indexer = new Indexer(data);
+            console.log(indexer.index);
+        }
+        );
+
+}
 
 function readJsonFile(path: string): Document[] {
     try {
@@ -12,7 +46,17 @@ function readJsonFile(path: string): Document[] {
                 const element = jsonData[key];
                 const document: Document = {
                     name: key,
-                    content: element.content,
+                    content: `
+                    ${element.releaseYear}
+                    ${element.content}
+                    ${element.title}
+                    ${element.originEthnicity}
+                    ${element.director}
+                    ${element.cast}
+                    ${element.genre}
+                    ${element.plot}
+                    `,
+                    link: element.wikiPage,
                 };
                 documents.push(document);
             }
@@ -40,6 +84,8 @@ function writeJsonFile(path: string, data: IndexedDocument): void {
     }
 }
 
-const convertedDocuments = readJsonFile('./data/data.json');
-const indexer = new Indexer(convertedDocuments);
-console.log(indexer.index);
+// const convertedDocuments = readJsonFile('./data/data-movies.json');
+// const indexer = new Indexer(convertedDocuments);
+// console.log(indexer.index);
+
+readCSV();
