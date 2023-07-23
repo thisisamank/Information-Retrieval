@@ -30,7 +30,14 @@ function readCSV() {
         })
         .on('end', () => {
             const indexer = new Indexer(data);
-            console.log(indexer.index);
+            const stdin = process.openStdin();
+            console.log('Enter a query:');
+            stdin.addListener('data', (query: any) => {
+                const documents = indexer.search(query.toString().trim());
+                console.log(documents[0],);
+                console.log(`idf value: ${documents[1]}`,)
+                console.log('Enter a query:');
+            });
         }
         );
 

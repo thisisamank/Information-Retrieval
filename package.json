@@ -16,6 +16,7 @@
     "@types/stopword": "^2.0.0",
     "csv-parser": "^3.0.0",
     "fs": "^0.0.1-security",
+    "natural": "^6.5.0",
     "stopword": "^2.0.8"
   }
 }

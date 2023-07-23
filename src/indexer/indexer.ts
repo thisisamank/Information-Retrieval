@@ -1,6 +1,7 @@
+import { WordTokenizer } from 'natural';
 import { eng, removeStopwords } from 'stopword';
 
-import { Document, IndexedDocument, PostingList } from '../model/documents';
+import { Document, IdfData, IndexedDocument, PostingList } from '../model/documents';
 
 export class Indexer {
 
@@ -15,17 +16,28 @@ export class Indexer {
 
     public index: IndexedDocument = new Map<string, PostingList>();
 
+    public idf: IdfData = new Map<string, number>();
+
     /**
-     * TODO: Might add a semaphore to prevent access of index while indexing
      * @param documents documents to be indexed
     */
-
     constructor(documents: Document[]) {
         this.documents = documents;
         this.index = this.indexAllDocuments();
+        this.intializeIdfData();
+    }
+
+    private intializeIdfData(): void {
+        for (const document of this.index) {
+            this.idf.set(document[0], this.generateIdf(document[1].frequency))
+        }
     }
 
 
+    private generateIdf(termFrequency: number): number {
+        const totalDocuments = this.documents.length;
+        return Math.log10(totalDocuments / termFrequency + 1);
+    }
     private indexAllDocuments(): IndexedDocument {
         for (const document of this.documents) {
             this.indexDocument(document, false);
@@ -63,6 +75,27 @@ export class Indexer {
         return this.index;
     }
 
+    /**
+     * @param query query to be searched
+     * @returns documents that contain the query
+    **/
+    public search(query: string): [string[], number] {
+        const words = this.tokenizer({ content: query, name: '', link: '' });
+        const documents: string[] = [];
+        for (const word of words) {
+            const postingList = this.index.get(word);
+            if (postingList !== undefined) {
+                for (const document of postingList.documents) {
+                    if (!documents.includes(document)) {
+                        documents.push(document);
+                    }
+                }
+            }
+        }
+        const idfFortheQuery = this.idf.get(words[0])!!;
+        return [documents, idfFortheQuery];
+    }
+
     private sortMapByKey<V>(map: Map<string, V>): Map<string, V> {
         const sortedArray = Array.from(map.entries()).sort((a, b) => {
             return a[0].localeCompare(b[0]);
@@ -72,6 +105,10 @@ export class Indexer {
     }
 
     private tokenizer(document: Document): string[] {
-        return removeStopwords(document.content.toLowerCase().split(' '), eng)
+        const tokenizer = new WordTokenizer();
+        const words = tokenizer.tokenize(document.content.toLowerCase());
+        if (words === undefined)
+            return []
+        return removeStopwords(words!!, eng)
     }
 }
