@@ -29,12 +29,12 @@ export class Indexer {
 
     private intializeIdfData(): void {
         for (const document of this.index) {
-            this.idf.set(document[0], this.generateIdf(document[1].frequency))
+            this.idf.set(document[0], this.generateTfIdf(document[1].frequency))
         }
     }
 
 
-    private generateIdf(termFrequency: number): number {
+    private generateTfIdf(termFrequency: number): number {
         const totalDocuments = this.documents.length;
         return Math.log10(totalDocuments / termFrequency + 1);
     }
@@ -79,21 +79,50 @@ export class Indexer {
      * @param query query to be searched
      * @returns documents that contain the query
     **/
-    public search(query: string): [string[], number] {
-        const words = this.tokenizer({ content: query, name: '', link: '' });
-        const documents: string[] = [];
+    public search(query: string): [string, number][] {
+        const words = this.tokenizer({ name: '', content: query, link: '' });
+
+
+        //         for every query term q in Q do
+        // retrieve the postings list for q
+        // from the inverted file
+        // for each document d indexed
+        // in the postings list do
+        // score(d) = score(d) + tfd,q × idfq
+        // end
+        // end
+        // Normalize scores.
+        // Sort documents according to
+        // normalized scores.
+        // const documentIdsWithScore = new Map<string, number>()
+
+
+
+        const documents: Map<string, number>[] = [];
+        const documentIdsWithScore = new Map<string, number>();
         for (const word of words) {
             const postingList = this.index.get(word);
             if (postingList !== undefined) {
                 for (const document of postingList.documents) {
-                    if (!documents.includes(document)) {
-                        documents.push(document);
+                    const score = this.generateTfIdf(postingList.frequency) * (this.idf.get(word) ?? 0);
+                    if (documents.length === 0) {
+                        documentIdsWithScore.set(document, score);
+                        documents.push(documentIdsWithScore);
+                    } else {
+                        const documentIdsWithScore = documents[0];
+                        if (documentIdsWithScore.get(document) === undefined) {
+                            documentIdsWithScore.set(document, score);
+                        } else {
+                            const oldScore = documentIdsWithScore.get(document)!!;
+                            documentIdsWithScore.set(document, oldScore + score);
+                        }
                     }
                 }
             }
         }
         const idfFortheQuery = this.idf.get(words[0])!!;
-        return [documents, idfFortheQuery];
+        const docs = [...documentIdsWithScore.entries()];
+        return docs;
     }
 
     private sortMapByKey<V>(map: Map<string, V>): Map<string, V> {
